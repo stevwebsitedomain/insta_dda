@@ -24,6 +24,10 @@ pandas>=2.1.1
 Pygments>=2.19.2
 pure_eval>=0.2.3
 
+gunicorn>=20.2.0
+
+
 # Web frameworks (optional)
 flask>=2.3.3
+
 
