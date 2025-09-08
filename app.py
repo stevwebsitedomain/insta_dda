@@ -7,6 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
 
 app = Flask(__name__)
 CORS(app)
@@ -24,14 +25,13 @@ def create_driver():
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-blink-features=AutomationControlled")
 
-    # Binary ya Chromium
     chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
     if not os.path.exists(chrome_bin):
         raise Exception(f"Chrome/Chromium binary not found at {chrome_bin}")
     options.binary_location = chrome_bin
 
-    # Tumia chromedriver installed kwenye system
-    service = ChromeService("/usr/bin/chromedriver")
+    # Use driver matching installed Chromium version
+    service = ChromeService(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(60)
     return driver
@@ -40,18 +40,20 @@ def create_driver():
 # Instagram Scraper Functions
 # ----------------------------
 def login_instagram(driver, username, password):
+    print(f"[DEBUG] Logging in as: {username}")
     driver.get("https://www.instagram.com/accounts/login/")
-    time.sleep(4)
+    time.sleep(5)
     try:
         driver.find_element(By.NAME, "username").send_keys(username)
         driver.find_element(By.NAME, "password").send_keys(password + Keys.RETURN)
         time.sleep(6)
-    except:
+    except Exception as e:
+        print("[DEBUG] Login failed:", e)
         time.sleep(4)
 
 def search_hashtag(driver, tag):
     driver.get(f"https://www.instagram.com/explore/tags/{tag}/")
-    time.sleep(4)
+    time.sleep(5)
 
 def get_post_links(driver, limit=50):
     links = set()
@@ -68,6 +70,7 @@ def get_post_links(driver, limit=50):
         if new_height == last_height:
             break
         last_height = new_height
+    print(f"[DEBUG] Found {len(links)} post links")
     return list(links)[:limit]
 
 def extract_info(driver, post_url):
@@ -80,14 +83,10 @@ def extract_info(driver, post_url):
         username = "Unknown"
 
     try:
-        caption_el = driver.find_element(By.XPATH, '//div[@data-testid="post-comment-root"]')
+        caption_el = driver.find_element(By.XPATH, '//div[contains(@class,"C4VMK")]/span')
         caption = caption_el.text
     except:
-        try:
-            alt = driver.find_element(By.XPATH, '//div[contains(@class,"C4VMK")]/span')
-            caption = alt.text
-        except:
-            caption = ""
+        caption = ""
 
     bio = ""
     if username != "Unknown":
@@ -137,14 +136,18 @@ def scrape():
         login_instagram(driver, IG_USER, IG_PASS)
         search_hashtag(driver, hashtag)
         links = get_post_links(driver, limit)
+        if not links:
+            print("[DEBUG] No post links found")
         results, seen = [], set()
         for url in links:
             info = extract_info(driver, url)
             if info["Username"] not in seen and info["Username"] != "Unknown":
                 seen.add(info["Username"])
                 results.append(info)
+        print(f"[DEBUG] Total results: {len(results)}")
         return jsonify(results)
     except Exception as e:
+        print("[DEBUG] Scraper error:", e)
         return jsonify({"error": str(e)}), 500
     finally:
         if driver:
