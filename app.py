@@ -16,7 +16,17 @@ CORS(app)
 # Driver setup
 # ----------------------------
 def create_driver():
+    chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
+    if not os.path.exists(chrome_bin):
+        raise Exception(f"Chrome/Chromium binary not found at {chrome_bin}")
+
+    # Use webdriver-manager to download driver matching installed Chromium
+    # Set the version to match your container's Chromium (140.0.7339.80)
+    driver_path = ChromeDriverManager(version="140.0.7339.80").install()
+    service = ChromeService(driver_path)
+
     options = webdriver.ChromeOptions()
+    options.binary_location = chrome_bin
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
@@ -25,13 +35,6 @@ def create_driver():
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-blink-features=AutomationControlled")
 
-    chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
-    if not os.path.exists(chrome_bin):
-        raise Exception(f"Chrome/Chromium binary not found at {chrome_bin}")
-    options.binary_location = chrome_bin
-
-    # Use webdriver-manager to download driver matching installed Chromium
-    service = ChromeService(ChromeDriverManager(version="latest").install())
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(60)
     return driver
