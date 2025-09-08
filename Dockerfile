@@ -8,18 +8,19 @@ ENV PORT=10000
 ENV CHROME_BIN=/usr/bin/chromium
 ENV DISPLAY=:99
 
-# Install system dependencies + Chromium + driver
+# Install system dependencies + Chromium
 RUN apt-get update && apt-get install -y \
-    wget gnupg2 ca-certificates unzip \
-    fonts-liberation libnss3 libxss1 libasound2 libatk1.0-0 libatk-bridge2.0-0 \
-    libgtk-3-0 libgbm1 libx11-xcb1 libxcomposite1 libxcursor1 libxdamage1 \
-    libxrandr2 libappindicator3-1 libdbus-1-3 curl chromium chromium-driver \
+    chromium \
+    wget unzip ca-certificates fonts-liberation \
+    libnss3 libxss1 libasound2 libatk1.0-0 libatk-bridge2.0-0 \
+    libgtk-3-0 libgbm1 libx11-xcb1 libxcomposite1 libxcursor1 \
+    libxdamage1 libxrandr2 libappindicator3-1 libdbus-1-3 curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy and install Python dependencies
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
@@ -30,5 +31,5 @@ COPY . .
 # Expose port
 EXPOSE ${PORT}
 
-# Start the app using Gunicorn
+# Start app using Gunicorn
 CMD ["bash", "-c", "gunicorn --bind 0.0.0.0:${PORT} app:app --workers 1 --threads 4"]
