@@ -1,11 +1,14 @@
+# Base image
 FROM python:3.11-slim
 
+# Environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PORT=10000
 ENV CHROME_BIN=/usr/bin/chromium
 ENV DISPLAY=:99
 
+# Install system dependencies + Chromium 140
 RUN apt-get update && apt-get install -y \
     chromium \
     wget unzip ca-certificates fonts-liberation \
@@ -14,14 +17,19 @@ RUN apt-get update && apt-get install -y \
     libxdamage1 libxrandr2 libappindicator3-1 libdbus-1-3 curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Set working directory
 WORKDIR /app
 
+# Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
+# Copy app source
 COPY . .
 
+# Expose port
 EXPOSE ${PORT}
 
+# Start the app using Gunicorn
 CMD ["bash", "-c", "gunicorn --bind 0.0.0.0:${PORT} app:app --workers 1 --threads 4"]
