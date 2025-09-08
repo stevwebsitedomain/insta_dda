@@ -25,13 +25,13 @@ def create_driver():
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-blink-features=AutomationControlled")
 
-    # Use environment variable CHROME_BIN
     chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
     if not os.path.exists(chrome_bin):
         raise Exception(f"Chrome/Chromium binary not found at {chrome_bin}")
     options.binary_location = chrome_bin
 
-    service = ChromeService(ChromeDriverManager().install())
+    # Use webdriver-manager to download driver matching installed Chromium
+    service = ChromeService(ChromeDriverManager(version="latest").install())
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(60)
     return driver
@@ -115,7 +115,7 @@ def extract_info(driver, post_url):
 # ----------------------------
 @app.route("/")
 def home():
-    return render_template("index.html")  # Ensure index.html exists
+    return render_template("index.html")
 
 @app.route("/scrape", methods=["POST"])
 def scrape():
