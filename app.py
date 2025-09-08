@@ -31,7 +31,7 @@ def create_driver():
     options.binary_location = chrome_bin
 
     # Use driver matching installed Chromium version
-    service = ChromeService(ChromeDriverManager().install())
+    service = ChromeService(ChromeDriverManager(version="140.0.7339.80").install())
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(60)
     return driver
@@ -159,3 +159,4 @@ def scrape():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
