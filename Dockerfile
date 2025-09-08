@@ -8,7 +8,7 @@ ENV PORT=10000
 ENV CHROME_BIN=/usr/bin/chromium
 ENV DISPLAY=:99
 
-# Install system dependencies + Chromium 140
+# Install system dependencies and Chromium
 RUN apt-get update && apt-get install -y \
     chromium \
     wget unzip ca-certificates fonts-liberation \
@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy and install Python dependencies
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
