@@ -1,6 +1,7 @@
 # Core packages
 selenium>=4.15
-webdriver-manager>=5.5.0
+webdriver-manager==4.0.2
+
 
 # Environment & logging
 python-dotenv>=1.1.1
@@ -25,3 +26,4 @@ pure_eval>=0.2.3
 
 # Web frameworks (optional)
 flask>=2.3.3
+
